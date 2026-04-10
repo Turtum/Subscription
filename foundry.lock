@@ -1,0 +1,14 @@
+{
+  "lib/forge-std": {
+    "rev": "7117c90c8cf6c68e5acce4f09a6b24715cea4de6"
+  },
+  "lib/openzeppelin-contracts": {
+    "rev": "dc44c9f1a4c3b10af99492eed84f83ed244203f6"
+  },
+  "lib/solmate": {
+    "rev": "89365b880c4f3c786bdd453d4b8e8fe410344a69"
+  },
+  "lib/whitelist-contracts": {
+    "rev": "d67095f53acd34335e56774add841465127e1f03"
+  }
+}

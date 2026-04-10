@@ -1,0 +1,28 @@
+# Compiler files
+cache/
+out/
+*.cache
+.cache/
+**/*.cache
+
+# Ignores development broadcast logs
+broadcast/
+broadcasted/
+
+# Docs
+docs/
+
+# Dotenv file
+.env
+
+# Coverage
+coverage/
+lcov.info
+
+.DS_Store
+
+# Local tooling / IDE
+.claude/
+
+# ABI files
+abi/
