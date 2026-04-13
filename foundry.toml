@@ -10,15 +10,6 @@ gas_price = 0
 optimizer = true
 optimizer_runs = 10000
 via_ir = true
-auto_detect_remappings = false
-
-remappings = [
-    "forge-std/=lib/forge-std/src/",
-    "openzeppelin-contracts/=lib/openzeppelin-contracts/",
-    "whitelist-contracts/=lib/whitelist-contracts/",
-    "solmate/=lib/solmate/src/"
-]
-
 [rpc_endpoints]
 sepolia = "https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY}"
 mainnet = "https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}"
