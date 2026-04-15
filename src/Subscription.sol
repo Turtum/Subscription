@@ -41,7 +41,7 @@ contract Subscription is ISubscription, Ownable, Initializable {
         _transferOwnership(tx.origin);
     }
 
-    function initialize(address whiteListAddress_) external initializer {
+    function initialize(address whiteListAddress_) public initializer {
         if (whiteListAddress_ == address(0)) {
             revert AddressZero();
         }
