@@ -6,10 +6,9 @@ import {
     YearCountZero,
     AddressZero,
     InsufficientBalance,
-    SubscriptionFeeIncreaseTooLarge,
-    SubscriptionFeeAdjustmentTooSoon,
     InvalidFeeDiscount,
-    InvalidFeeDiscountPeriod
+    InvalidFeeDiscountPeriod,
+    InvalidSubscriptionFee
 } from "./interfaces/ISubscription.sol";
 import {Ownable} from "openzeppelin-contracts/contracts/access/Ownable.sol";
 import {Initializable} from "openzeppelin-contracts/contracts/proxy/utils/Initializable.sol";
@@ -20,13 +19,8 @@ import {SafeERC20} from "openzeppelin-contracts/contracts/token/ERC20/utils/Safe
 contract Subscription is ISubscription, Ownable, Initializable {
     using SafeERC20 for IERC20Metadata;
 
-    uint256 public lastSubscriptionFeeUpdate;
-    uint256 public subscriptionFee = 99;
+    uint256 public subscriptionFee;
     uint256 public constant SUBSCRIPTION_DURATION = 365 days;
-
-    uint256 internal constant FEE_ADJUSTMENT_COOLDOWN = 365 days;
-    uint256 internal constant FEE_INCREASE_NUMERATOR = 110;
-    uint256 internal constant FEE_INCREASE_DENOMINATOR = 100;
 
     uint256 public feeDiscountBps;
     uint256 public feeDiscountFrom;
@@ -41,25 +35,19 @@ contract Subscription is ISubscription, Ownable, Initializable {
         _transferOwnership(tx.origin);
     }
 
-    function initialize(address whiteListAddress_) public initializer {
+    function initialize(address whiteListAddress_, uint256 initSubscriptionFee) public initializer {
         if (whiteListAddress_ == address(0)) {
             revert AddressZero();
         }
         _whiteList = whiteListAddress_;
+        if (initSubscriptionFee == 0) {
+            revert InvalidSubscriptionFee();
+        }
+        subscriptionFee = initSubscriptionFee;
     }
 
     function setSubscriptionFee(uint256 subscriptionFee_) external override onlyOwner {
-        if (lastSubscriptionFeeUpdate != 0 && block.timestamp < lastSubscriptionFeeUpdate + FEE_ADJUSTMENT_COOLDOWN) {
-            revert SubscriptionFeeAdjustmentTooSoon();
-        }
-        uint256 current = subscriptionFee;
-        if (subscriptionFee_ > current) {
-            if (subscriptionFee_ * FEE_INCREASE_DENOMINATOR > current * FEE_INCREASE_NUMERATOR) {
-                revert SubscriptionFeeIncreaseTooLarge();
-            }
-        }
         subscriptionFee = subscriptionFee_;
-        lastSubscriptionFeeUpdate = block.timestamp;
     }
 
     function setSubscriptionFeeReceiver(address subscriptionFeeReceiver_) external override onlyOwner {
@@ -73,7 +61,7 @@ contract Subscription is ISubscription, Ownable, Initializable {
         if (discount > BPS_DENOMINATOR) {
             revert InvalidFeeDiscount();
         }
-        if (fromTimestamp > toTimestamp) {
+        if (fromTimestamp > toTimestamp || block.timestamp > toTimestamp) {
             revert InvalidFeeDiscountPeriod();
         }
         feeDiscountBps = discount;

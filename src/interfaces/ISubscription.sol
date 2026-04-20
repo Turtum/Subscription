@@ -4,8 +4,7 @@ pragma solidity ^0.8.34;
 error YearCountZero();
 error AddressZero();
 error InsufficientBalance();
-error SubscriptionFeeIncreaseTooLarge();
-error SubscriptionFeeAdjustmentTooSoon();
+error InvalidSubscriptionFee();
 error InvalidFeeDiscount();
 error InvalidFeeDiscountPeriod();
 

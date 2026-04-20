@@ -11,8 +11,7 @@ import {
     YearCountZero,
     AddressZero,
     InsufficientBalance,
-    SubscriptionFeeIncreaseTooLarge,
-    SubscriptionFeeAdjustmentTooSoon,
+    InvalidSubscriptionFee,
     InvalidFeeDiscount,
     InvalidFeeDiscountPeriod
 } from "../../src/interfaces/ISubscription.sol";
@@ -34,7 +33,7 @@ contract SubscriptionTest is Test {
         subscription = new Subscription();
         vm.startPrank(tx.origin);
         subscription.transferOwnership(tx.origin);
-        subscription.initialize(whiteList);
+        subscription.initialize(whiteList, 100);
         subscription.setSubscriptionFeeReceiver(feeReceiver);
         vm.stopPrank();
 
@@ -48,7 +47,13 @@ contract SubscriptionTest is Test {
     function test_InitializeFailedWhenWhiteListIsZeroAddress() public {
         Subscription sub = new Subscription();
         vm.expectRevert(AddressZero.selector);
-        sub.initialize(address(0));
+        sub.initialize(address(0), 100);
+    }
+
+    function test_InitializeFailedWhenSubscriptionFeeZero() public {
+        Subscription sub = new Subscription();
+        vm.expectRevert(InvalidSubscriptionFee.selector);
+        sub.initialize(whiteList, 0);
     }
 
     function test_SetSubscriptionFeeReceiverFailedWhenAddressZero() public {
@@ -63,50 +68,10 @@ contract SubscriptionTest is Test {
         subscription.setSubscriptionFeeReceiver(makeAddr("newReceiver"));
     }
 
-    function test_SetSubscriptionFee_IncreaseOver10Percent_Reverts() public {
-        vm.prank(tx.origin);
-        vm.expectRevert(SubscriptionFeeIncreaseTooLarge.selector);
-        subscription.setSubscriptionFee(110);
-    }
-
-    function test_SetSubscriptionFee_IncreaseAt10Percent_Succeeds() public {
-        vm.prank(tx.origin);
-        subscription.setSubscriptionFee(108);
-        assertEq(subscription.subscriptionFee(), 108);
-    }
-
-    function test_SetSubscriptionFee_SecondAdjustWithinYear_Reverts() public {
-        vm.startPrank(tx.origin);
-        subscription.setSubscriptionFee(100);
-        vm.expectRevert(SubscriptionFeeAdjustmentTooSoon.selector);
-        subscription.setSubscriptionFee(100);
-        vm.stopPrank();
-    }
-
-    function test_SetSubscriptionFee_AfterCooldown_Succeeds() public {
-        vm.prank(tx.origin);
-        subscription.setSubscriptionFee(100);
-        vm.warp(block.timestamp + 365 days);
-        vm.prank(tx.origin);
-        subscription.setSubscriptionFee(105);
-        assertEq(subscription.subscriptionFee(), 105);
-    }
-
     function test_SetSubscriptionFee_Decrease_NoCap() public {
         vm.prank(tx.origin);
         subscription.setSubscriptionFee(50);
         assertEq(subscription.subscriptionFee(), 50);
-    }
-
-    function test_SetFeeDiscount_DoesNotAffectSubscriptionFeeCooldown() public {
-        vm.startPrank(tx.origin);
-        subscription.setSubscriptionFee(100);
-        vm.expectRevert(SubscriptionFeeAdjustmentTooSoon.selector);
-        subscription.setSubscriptionFee(100);
-        subscription.setFeeDiscount(500, block.timestamp, block.timestamp + 7 days);
-        vm.expectRevert(SubscriptionFeeAdjustmentTooSoon.selector);
-        subscription.setSubscriptionFee(100);
-        vm.stopPrank();
     }
 
     function test_SetFeeDiscount_InvalidBps_Reverts() public {
