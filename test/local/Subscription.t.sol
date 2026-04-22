@@ -40,8 +40,11 @@ contract SubscriptionTest is Test {
         address[] memory stableCoins = new address[](2);
         stableCoins[0] = address(mockStableCoin);
         stableCoins[1] = address(mockStableCoin2);
-        vm.prank(tx.origin);
+        WhiteList wl = WhiteList(whiteList);
+        vm.startPrank(tx.origin);
+        wl.grantRole(wl.STABLE_COIN_MANAGER_ROLE(), tx.origin);
         IWhiteList(whiteList).addStableCoins(stableCoins);
+        vm.stopPrank();
     }
 
     function test_InitializeFailedWhenWhiteListIsZeroAddress() public {
